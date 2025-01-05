@@ -4,8 +4,8 @@ class Road {
     this.width = width;
     this.laneCount = laneCount;
 
-    this.left = x-width/2;
-    this.right = x+width/2;
+    this.left = x - width/2;
+    this.right = x + width/2;
     
     const infinity = 10000000;
     this.top = -infinity;
@@ -23,7 +23,7 @@ class Road {
 
   getLaneCenter(index) {
     const lineWidth = this.width/this.laneCount;
-    return this.left+lineWidth/2 + index * lineWidth;
+    return this.left+lineWidth/2 + Math.min(index, this.laneCount - 1) * lineWidth;
   }
 
   draw(ctx) {
