@@ -1,29 +1,33 @@
 class Car {
-  constructor(x, y, width, height, acceleration=0.2, friction=0.05) {
+  constructor(x, y, width, height, controlType) {
     this.x = x;
     this.y = y;
     this.width = width;
     this.height = height;
 
     this.speed = 0;
-    this.acceleration = acceleration;
-    this.maxSpeed = 3;
-    this.friction = friction;
+    this.acceleration = 0.2;
+    this.maxSpeed = controlType !== 'DUMMY' ? 3 : 2;
+    this.friction = 0.05;
     this.angle = 0;
-
     this.damaged = false;
-
-    this.sensor = new Sensor(this);
-    this.controls = new Controls();
+    this.controlType = controlType;
+    
+    if(controlType === 'MAIN') {
+      this.sensor = new Sensor(this);
+    }
+    this.controls = new Controls(controlType);
   }
 
-  update(roadBorders) {
+  update(roadBorders, traffic) {
     if(!this.damaged) {
       this.#move();
       this.polygon = this.#createPolygon();
-      this.damaged = this.#assessDamage(roadBorders);
+      this.damaged = this.#assessDamage(roadBorders, traffic);
     }
-    this.sensor.update(roadBorders);
+    if(this.sensor) {
+      this.sensor.update(roadBorders, traffic);
+    }
   }
 
   // Used to determine the points of the car for collision detection:
@@ -58,9 +62,16 @@ class Car {
       return points;
     }
   
-  #assessDamage(roadBorders) {
+  #assessDamage(roadBorders, traffic) {
     for(let i = 0; i < roadBorders.length; i++) {
       if(polysIntersect(this.polygon, roadBorders[i])) {
+        return true;
+      }
+    }
+
+    for(let i = 0; i < traffic.length; i++) {
+      const poly = traffic[i].polygon;
+      if(polysIntersect(this.polygon, poly)) {
         return true;
       }
     }
@@ -84,8 +95,9 @@ class Car {
 
     // ctx.fill();
     // ctx.restore();
-
-    ctx.fillStyle = this.damaged ? 'grey' : 'black';
+    // const colours = []
+    const colour = this.controlType !== 'DUMMY' ? 'black' : 'blue';
+    ctx.fillStyle = this.damaged ? 'grey' : colour;
 
     // New method (with using the corner points):
     ctx.beginPath();
@@ -95,7 +107,9 @@ class Car {
     }
     ctx.fill();
 
-    this.sensor.draw(ctx);
+    if(this.sensor) {
+      this.sensor.draw(ctx);
+    }
   }
 
   #move() {
