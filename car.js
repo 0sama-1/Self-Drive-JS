@@ -11,35 +11,103 @@ class Car {
     this.friction = friction;
     this.angle = 0;
 
+    this.damaged = false;
+
     this.sensor = new Sensor(this);
     this.controls = new Controls();
   }
 
   update(roadBorders) {
-    this.#move();
+    if(!this.damaged) {
+      this.#move();
+      this.polygon = this.#createPolygon();
+      this.damaged = this.#assessDamage(roadBorders);
+    }
     this.sensor.update(roadBorders);
   }
+
+  // Used to determine the points of the car for collision detection:
+  #createPolygon() {
+    const points = [];
+    const rad = Math.hypot(this.width, this.height) / 2;
+    const alpha = Math.atan2(this.width, this.height);
+
+    // Top Right Point:
+    points.push({
+      x: this.x - Math.sin(this.angle - alpha) * rad,
+      y: this.y - Math.cos(this.angle - alpha) * rad
+    });
+
+    // Top Left Point:
+    points.push({
+      x: this.x - Math.sin(this.angle + alpha) * rad,
+      y: this.y - Math.cos(this.angle + alpha) * rad
+    });
+
+    // Bottom Right Point:
+    points.push({
+      x: this.x - Math.sin(Math.PI + this.angle - alpha) * rad,
+      y: this.y - Math.cos(Math.PI + this.angle - alpha) * rad
+    });
+
+    // Bottom Left Point:
+    points.push({
+      x: this.x - Math.sin(Math.PI + this.angle + alpha) * rad,
+      y: this.y - Math.cos(Math.PI + this.angle + alpha) * rad
+    });
+      return points;
+    }
   
+  #assessDamage(roadBorders) {
+    for(let i = 0; i < roadBorders.length; i++) {
+      if(polysIntersect(this.polygon, roadBorders[i])) {
+        return true;
+      }
+    }
+    return false;
+  }
   draw(ctx) {
-    ctx.save();
-    ctx.translate(this.x, this.y);
-    ctx.rotate(-this.angle);
+    /**
+     * Old method:
+    // ctx.save();
+    // ctx.translate(this.x, this.y);
+    // ctx.rotate(-this.angle);
 
+    // ctx.beginPath();
+    // ctx.rect(
+    //   -this.width/2,
+    //   -this.height/2,
+    //   this.width,
+    //   this.height
+    // );
+     */ 
+
+    // ctx.fill();
+    // ctx.restore();
+
+    ctx.fillStyle = this.damaged ? 'grey' : 'black';
+
+    // New method (with using the corner points):
     ctx.beginPath();
-    ctx.rect(
-      -this.width/2,
-      -this.height/2,
-      this.width,
-      this.height
-    );
-
+    ctx.moveTo(this.polygon[0].x, this.polygon[0].y);
+    for(let i = 0; i < this.polygon.length; i++) {
+      ctx.lineTo(this.polygon[i].x, this.polygon[i].y);
+    }
     ctx.fill();
-    ctx.restore();
 
     this.sensor.draw(ctx);
   }
 
   #move() {
+    /**
+     //DELETE LATER
+     //Should do? (Indicate death in the NN model):
+     if(this.damaged) {
+       this.speed = 0;
+       return;
+     }
+     */
+
     if(this.controls.forward) {
       this.speed += this.acceleration;
     }
