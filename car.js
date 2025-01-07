@@ -98,7 +98,7 @@ class Car {
     }
     return false;
   }
-  draw(ctx) {
+  draw(ctx, drawSensor=false) {
     /**
      * Old method:
     // ctx.save();
@@ -122,15 +122,15 @@ class Car {
 
     // New method (with using the corner points):
     ctx.beginPath();
+    if(this.sensor && drawSensor) {
+      this.sensor.draw(ctx);
+    }
     ctx.moveTo(this.polygon[0].x, this.polygon[0].y);
     for(let i = 0; i < this.polygon.length; i++) {
       ctx.lineTo(this.polygon[i].x, this.polygon[i].y);
     }
     ctx.fill();
 
-    if(this.sensor) {
-      this.sensor.draw(ctx);
-    }
   }
 
   #move() {

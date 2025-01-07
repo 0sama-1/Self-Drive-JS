@@ -97,9 +97,9 @@ class Visualiser {
       ctx.lineWidth = 2;
       ctx.arc(x, top, nodeRadius, 0, Math.PI * 2);
       ctx.strokeStyle = getRGBA(biases[i]);
-      ctx.setLineDash([3, 3]);
+      // ctx.setLineDash([3, 3]);
       ctx.stroke();
-      ctx.setLineDash([]);
+      // ctx.setLineDash([]);
 
       if(outputLabels[i]) {
         ctx.beginPath();
