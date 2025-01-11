@@ -22,6 +22,22 @@ class Car {
       );
     }
     this.controls = new Controls(controlType);
+    this.img = new Image();
+    this.img.src = 'car.png';
+
+    this.mask = document.createElement('canvas');
+    this.mask.width = width;
+    this.mask.height = height;
+
+    const maskCtx = this.mask.getContext('2d');
+    this.img.onload = () => {
+      maskCtx.fillStyle = controlType != 'DUMMY' ? 'blue' : getRandomColor();
+      maskCtx.rect(0, 0, width, height);
+      maskCtx.fill();
+
+      maskCtx.globalCompositeOperation = 'destination-atop';
+      maskCtx.drawImage(this.img, 0, 0, width, height);
+    }
   }
 
   update(roadBorders, traffic) {
@@ -113,23 +129,19 @@ class Car {
     //   this.height
     // );
      */ 
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(-this.angle);
+    if(!this.damaged) {
+      ctx.drawImage(this.mask, -this.width/2, -this.height/2, this.width, this.height);
+      ctx.globalCompositeOperation = 'multiply';
+    }
+    ctx.drawImage(this.img, -this.width/2, -this.height/2, this.width, this.height);
+    ctx.restore();
 
-    // ctx.fill();
-    // ctx.restore();
-    // const colours = []
-    const colour = this.controlType !== 'DUMMY' ? 'black' : 'blue';
-    ctx.fillStyle = this.damaged ? 'grey' : colour;
-
-    // New method (with using the corner points):
-    ctx.beginPath();
     if(this.sensor && drawSensor) {
       this.sensor.draw(ctx);
     }
-    ctx.moveTo(this.polygon[0].x, this.polygon[0].y);
-    for(let i = 0; i < this.polygon.length; i++) {
-      ctx.lineTo(this.polygon[i].x, this.polygon[i].y);
-    }
-    ctx.fill();
 
   }
 
